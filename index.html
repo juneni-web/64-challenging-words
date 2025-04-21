@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vocabulary Flashcard Game</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 2rem; background: #f9f9f9; }
+    .card { background: #fff; border: 2px solid #333; border-radius: 8px; padding: 2rem; margin-bottom: 1rem; box-shadow: 2px 2px 8px rgba(0,0,0,0.1); }
+    button, input { margin: 0.5rem; padding: 0.5rem 1rem; font-size: 1rem; border-radius: 4px; cursor: pointer; }
+    #feedback { margin-top: 1rem; font-weight: bold; }
+    #progress { margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Vocabulary Flashcard Game</h1>
+  <div class="card">
+    <p id="sentence">Loading...</p>
+    <p id="hint"></p>
+    <input type="text" id="guess" placeholder="Type your guess here">
+    <div id="feedback"></div>
+  </div>
+  <div>
+    <button id="playWord">Play Word</button>
+    <button id="playSentence">Play Sentence</button>
+    <button id="submit">Submit</button>
+    <button id="reveal">Reveal Answer</button>
+    <button id="prev">Previous</button>
+    <button id="next">Next</button>
+  </div>
+  <div id="progress"></div>
+
+  <script>
+    const cards = [
+      { word: "provocation", sentence: "Action under provocation.", translation: "在挑衅下采取行动。" },
+      { word: "recession", sentence: "The economic recession hit hard.", translation: "经济衰退冲击巨大。" },
+      { word: "hostage", sentence: "Terrorists took hostages.", translation: "恐怖分子劫持了人质。" },
+      { word: "confined", sentence: "Patients are confined to bed.", translation: "病人被限制在床上。" },
+      { word: "calling", sentence: "He found his true calling.", translation: "他找到了真正的使命。" },
+      { word: "norm", sentence: "This deviates from the norm.", translation: "这偏离了常规。" },
+      { word: "bud", sentence: "Rose buds are blooming.", translation: "玫瑰花蕾正在绽放。" },
+      { word: "perpetuate", sentence: "This myth perpetuates fear.", translation: "这种神话延续了恐惧。" },
+      { word: "rotary", sentence: "A rotary engine works differently.", translation: "转子发动机的工作方式不同。" },
+      { word: "shovel", sentence: "Workers shovel snow.", translation: "工人们在铲雪。" },
+      { word: "hazardous", sentence: "Hazardous materials require special handling.", translation: "危险物品需要特殊处理。" },
+      { word: "flaunt", sentence: "He flaunts his wealth.", translation: "他炫耀自己的财富。" },
+      { word: "downbeat", sentence: "The report was downbeat.", translation: "这份报告情绪低落。" },
+      { word: "guise", sentence: "They met under the guise of friendship.", translation: "他们以友谊的名义见面。" },
+      { word: "sneaky", sentence: "The sneaky plan almost succeeded.", translation: "那个鬼鬼祟祟的计划差点成功。" },
+      { word: "hindsight", sentence: "In hindsight, I should have studied harder.", translation: "事后看来，我本应该更努力学习。" },
+      { word: "pitfall", sentence: "This contract has hidden pitfalls.", translation: "这份合同有隐藏的陷阱。" },
+      { word: "curb", sentence: "New laws curb pollution.", translation: "新法律遏制了污染。" },
+      { word: "lure", sentence: "The ad lures customers.", translation: "广告吸引了顾客。" },
+      { word: "gratification", sentence: "Delayed gratification is important.", translation: "延迟满足很重要。" },
+      { word: "criterion", sentence: "Meeting safety criteria.", translation: "符合安全标准。" },
+      { word: "correspond", sentence: "The photos correspond to reality.", translation: "这些照片与现实相符。" },
+      { word: "infringe", sentence: "This infringes copyright.", translation: "这侵犯了版权。" },
+      { word: "commission", sentence: "Artists get 30% commission on sales.", translation: "艺术家获得30%的销售佣金。" },
+      { word: "loom", sentence: "Dark clouds loom on the horizon.", translation: "地平线上乌云密布。" },
+      { word: "prestigious", sentence: "Winning this prestigious award changed her life.", translation: "获得这个有声望的奖项改变了她的生活。" },
+      { word: "gimmick", sentence: "It's just a marketing gimmick.", translation: "这只是一个营销噱头。" },
+      { word: "appliance", sentence: "The kitchen appliance broke.", translation: "厨房电器坏了。" },
+      { word: "vigilant", sentence: "Security guards stay vigilant.", translation: "保安保持警惕。" },
+      { word: "conceal", sentence: "He concealed the truth.", translation: "他隐藏了真相。" },
+      { word: "legislate", sentence: "Congress will legislate new laws.", translation: "国会将立法通过新法律。" },
+      { word: "trim", sentence: "She trimmed her hair.", translation: "她修剪了头发。" },
+      { word: "quest", sentence: "The quest for knowledge.", translation: "对知识的追求。" },
+      { word: "reckon", sentence: "I reckon it's true.", translation: "我认为这是真的。" },
+      { word: "spawn", sentence: "The policy spawned new problems.", translation: "该政策引发了新问题。" },
+      { word: "patriotism", sentence: "Songs expressing patriotism.", translation: "表达爱国主义的歌曲。" },
+      { word: "impulsive", sentence: "His impulsive decision caused problems.", translation: "他冲动的决定引发了问题。" },
+      { word: "deteriorate", sentence: "Air quality is deteriorating.", translation: "空气质量正在恶化。" },
+      { word: "sheer", sentence: "It was sheer madness to go out in the storm.", translation: "在暴风雨中外出简直是疯狂。" },
+      { word: "modification", sentence: "The car needs modification.", translation: "这辆车需要改装。" },
+      { word: "integrity", sentence: "We admire his integrity.", translation: "我们钦佩他的正直。" },
+      { word: "pitch", sentence: "The sales pitch worked.", translation: "推销宣传起作用了。" },
+      { word: "opposed", sentence: "They opposed the new law.", translation: "他们反对这项新法律。" },
+      { word: "seduce", sentence: "Ads seduce people into buying.", translation: "广告引诱人们购买。" },
+      { word: "enlist", sentence: "He enlisted in the army.", translation: "他参军了。" },
+      { word: "frenzy", sentence: "The crowd was in a frenzy.", translation: "人群陷入疯狂。" },
+      { word: "stash", sentence: "He stashed money under the bed.", translation: "他把钱藏在床下。" },
+      { word: "exclusively", sentence: "Sold exclusively here.", translation: "仅在此出售。" },
+      { word: "rational", sentence: "We need rational thinking.", translation: "我们需要理性思考。" },
+      { word: "stall", sentence: "The car stalled at the traffic light.", translation: "汽车在红绿灯处熄火了。" },
+      { word: "vanish", sentence: "The magician made it vanish.", translation: "魔术师让它消失了。" },
+      { word: "profile", sentence: "The police created a criminal profile.", translation: "警方建立了罪犯画像。" },
+      { word: "initiate", sentence: "She initiated the project.", translation: "她启动了这个项目。" },
+      { word: "unrelenting", sentence: "Unrelenting pressure caused stress.", translation: "持续的压力导致了紧张。" },
+      { word: "prolong", sentence: "Drugs prolong the effect.", translation: "药物延长了效果。" },
+      { word: "livestream", sentence: "The concert livestream reached millions.", translation: "音乐会直播吸引了数百万人观看。" },
+      { word: "portion", sentence: "A large portion was eaten.", translation: "一大部分被吃掉了。" },
+      { word: "dazzle", sentence: "The lights dazzle drivers.", translation: "灯光使司机眼花缭乱。" },
+      { word: "regulate", sentence: "Thermostats regulate room temperature.", translation: "恒温器调节室温。" },
+      { word: "internship", sentence: "She got a summer internship.", translation: "她获得了暑期实习。" },
+      { word: "wary", sentence: "Be wary of strangers.", translation: "提防陌生人。" },
+      { word: "obligation", sentence: "Legal obligations must be fulfilled.", translation: "法律义务必须履行。" },
+      { word: "substance", sentence: "Detect unknown substances in the lab.", translation: "在实验室检测未知物质。" },
+      { word: "organism", sentence: "Plants and animals are both living organisms.", translation: "植物和动物都是活生物。" }
+    ];
+
+    let current = 0;
+    let correct = 0;
+
+    const sentenceEl = document.getElementById('sentence');
+    const hintEl = document.getElementById('hint');
+    const guessEl = document.getElementById('guess');
+    const feedbackEl = document.getElementById('feedback');
+    const progressEl = document.getElementById('progress');
+
+    function updateCard() {
+      const card = cards[current];
+      const blanked = card.sentence.replace(new RegExp(card.word, 'gi'), '_____');
+      sentenceEl.textContent = blanked;
+      hintEl.textContent = `Hint: starts with "${card.word[0].toUpperCase()}"`;
+      guessEl.value = '';
+      feedbackEl.textContent = '';
+      updateProgress();
+    }
+
+    function updateProgress() {
+      progressEl.textContent = `Progress: ${current + 1} / ${cards.length}, Correct: ${correct}`;
+    }
+
+    document.getElementById('submit').onclick = () => {
+      const userGuess = guessEl.value.trim().toLowerCase();
+      const answer = cards[current].word.toLowerCase();
+      if (userGuess === answer) {
+        feedbackEl.textContent = "✅ Correct!";
+        correct++;
+        updateProgress();
+      } else {
+        feedbackEl.textContent = `❌ Incorrect. Try again or click Reveal.`;
+      }
+    };
+
+    document.getElementById('reveal').onclick = () => {
+      const card = cards[current];
+      feedbackEl.textContent = `Answer: ${card.word} | ${card.translation}`;
+    };
+
+    document.getElementById('next').onclick = () => {
+      current = (current + 1) % cards.length;
+      updateCard();
+    };
+
+    document.getElementById('prev').onclick = () => {
+      current = (current - 1 + cards.length) % cards.length;
+      updateCard();
+    };
+
+    document.getElementById('playWord').onclick = () => {
+      const utter = new SpeechSynthesisUtterance(cards[current].word);
+      window.speechSynthesis.speak(utter);
+    };
+
+    document.getElementById('playSentence').onclick = () => {
+      const utter = new SpeechSynthesisUtterance(cards[current].sentence);
+      window.speechSynthesis.speak(utter);
+    };
+
+    updateCard();
+  </script>
+</body>
+</html>
